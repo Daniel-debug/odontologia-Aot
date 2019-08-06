@@ -7,6 +7,7 @@ import { AccountSettingsComponent } from './account-settings/account-settings.co
 import { PromesasComponent } from './promesas/promesas.component';
 import { RxjsComponent } from './rxjs/rxjs.component';
 import { LoginGuardGuard } from '../services/guards/login-guard.guard';
+import { ProfileComponent } from './profile/profile.component';
 const pagesRoutes: Routes = [
     {path: '' ,
     component: PagesComponent,
@@ -18,8 +19,9 @@ const pagesRoutes: Routes = [
        {path: 'account-settings' , component: AccountSettingsComponent, data: {titulo: 'Ajustes del Tema'}},
        {path: 'promesas' , component: PromesasComponent, data: {titulo: 'promesas'}},
        {path: 'rxjs' , component: RxjsComponent, data: {titulo: 'rxjs'}},
+       {path: 'perfil' , component: ProfileComponent, data: {titulo: 'perfil de usuario'}},
        {path: '' , redirectTo: '/dashboard', pathMatch: 'full'},
      ]
     },
-]
+ ]
 export const PAGES_ROUTES = RouterModule.forChild( pagesRoutes );
