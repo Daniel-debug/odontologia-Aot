@@ -17,6 +17,7 @@ export class MedicosComponent implements OnInit {
 
   cargarMedicos() {
     this._medicoService.cargarMedicos().subscribe( medicos =>{
+      debugger
       this.medicos = medicos;
     });
   }
