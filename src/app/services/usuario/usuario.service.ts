@@ -1,14 +1,14 @@
 import { Injectable } from "@angular/core";
-import { Usuario, UsuarioModel } from "../../models/usuario.model";
+import { Usuario } from "../../models/usuario.model";
 import { HttpClient } from "@angular/common/http";
-import { URL_SERVICIOS, vivendumURL } from "../../config/config";
-import { map, catchError } from "rxjs/operators";
-import { throwError } from "rxjs/internal/observable/throwError";
+import { URL_SERVICIOS } from "../../config/config";
+import { map,catchError } from "rxjs/operators";
+import {throwError} from "rxjs/internal/observable/throwError";
 import Swal from "sweetalert2";
 import { Router } from "@angular/router";
 import { SubirArchivoService } from "../subir-archivo/subir-archivo.service";
 @Injectable({
-  providedIn: "root",
+  providedIn: "root"
 })
 export class UsuarioService {
   usuario: Usuario;
@@ -20,47 +20,40 @@ export class UsuarioService {
     public _subirArchivoService: SubirArchivoService
   ) {
     this.cargarStorage();
-  }
+  }  
   renuevaToken() {
-    let url = URL_SERVICIOS + "/login/renuevatoken";
-    url += "?token=" + this.token;
-    return this.http.get(url).pipe(
-      map((resp: any) => {
-        this.token = resp.token;
-        localStorage.setItem("token", this.token);
-        console.log("Token renovado");
-        return true;
-      }),
-      catchError((err) => {
-        this.router.navigate(["/login"]);
-        Swal.fire(
-          "No se pudo renovar token",
-          "No fue posible renvoar token",
-          "error"
-        );
-        return throwError(err);
-      })
-    );
+    let url = URL_SERVICIOS + '/login/renuevatoken';
+    url += '?token=' + this.token;
+    return this.http.get(url).pipe(map((resp: any) => {
+           this.token = resp.token;
+           localStorage.setItem('token', this.token);
+           console.log('Token renovado')
+           return true;
+    }), catchError(err => {
+      this.router.navigate(['/login']);
+      Swal.fire('No se pudo renovar token',  'No fue posible renvoar token', 'error');
+      return throwError(err);
+    }));
   }
   estaLogueado() {
     return this.token.length > 5 ? true : false;
   }
   cargarStorage() {
-    if (localStorage.getItem("token")) {
-      this.token = localStorage.getItem("token");
-      this.usuario = JSON.parse(localStorage.getItem("usuario"));
-      this.menu = JSON.parse(localStorage.getItem("menu"));
+    if (localStorage.getItem('token')) {
+      this.token = localStorage.getItem('token');
+      this.usuario = JSON.parse(localStorage.getItem('usuario'));
+      this.menu = JSON.parse(localStorage.getItem('menu'));
     } else {
-      this.token = "";
+      this.token = '';
       this.usuario = null;
       this.menu = [];
     }
   }
   guardarStorage(id: string, token: string, usuario: Usuario, menu: any) {
-    localStorage.setItem("id", id);
-    localStorage.setItem("token", token);
-    localStorage.setItem("usuario", JSON.stringify(usuario));
-    localStorage.setItem("menu", JSON.stringify(menu));
+    localStorage.setItem('id', id);
+    localStorage.setItem('token', token);
+    localStorage.setItem('usuario', JSON.stringify(usuario));
+    localStorage.setItem('menu', JSON.stringify(menu));
     this.usuario = usuario;
     this.token = token;
     this.menu = menu;
@@ -68,11 +61,11 @@ export class UsuarioService {
 
   logout() {
     this.usuario = null;
-    this.token = "";
+    this.token = '';
     this.menu = [];
     localStorage.removeItem("token");
     localStorage.removeItem("usuario");
-    localStorage.removeItem("menu");
+    localStorage.removeItem('menu');
     this.router.navigate(["/login"]);
     // localStorage.clear();
   }
@@ -88,38 +81,32 @@ export class UsuarioService {
   }
 
   login(usuario: Usuario, recordar: boolean = false) {
-    const url = vivendumURL + "login";
+    const url = URL_SERVICIOS + "/login";
     if (recordar) {
       localStorage.setItem("email", usuario.email);
     } else {
       localStorage.removeItem("email");
     }
-    let UsuarioModel: UsuarioModel = <UsuarioModel>{};
-    UsuarioModel.nombreUsuario = usuario.email;
-    UsuarioModel.pass = usuario.password;
-    return this.http.post(url, UsuarioModel).pipe(
-      map((res: any) => {
-        debugger;
-        this.guardarStorage("1", res.token, res.user, "");
-        //this.guardarStorage(res.id, res.token, res.usuario, res.menu);
-        return true;
-      }),
-      catchError((err) => {
-        //this._alert.alertaInformativa("Error en el login");
-        return throwError(err);
-      })
-    );
+
+    return this.http.post(url, usuario).pipe(
+        map((res: any) => {
+          this.guardarStorage(res.id, res.token, res.usuario, res.menu);
+          return true;
+        }), catchError(err => {
+          Swal.fire('Error en el login',  err.error.mensaje, 'error');
+          return throwError(err);
+        })
+      );
   }
 
   public crearUsuario(usuario: Usuario) {
     let url = URL_SERVICIOS + "/usuario";
 
     return this.http.post(url, usuario).pipe(
-      map((resp) => {
+      map(resp => {
         Swal.fire("Usuario creado", usuario.nombre, "success");
-      }),
-      catchError((err) => {
-        Swal.fire(err.error.mensaje, err.error.errors.message, "error");
+      }), catchError(err => {
+        Swal.fire(err.error.mensaje,  err.error.errors.message, 'error');
         return throwError(err);
       })
     );
@@ -130,50 +117,45 @@ export class UsuarioService {
 
     return this.http.put(url, usuario).pipe(
       map((resp: any) => {
-        if (usuario._id === this.usuario._id) {
+        if (usuario._id === this.usuario._id){
           let usuarioDB: Usuario = resp.usuario;
           this.guardarStorage(usuarioDB._id, this.token, usuarioDB, this.menu); // aqui no existe
         }
         Swal.fire("Usuario actualizado", usuario.nombre, "success");
-      }),
-      catchError((err) => {
-        Swal.fire(err.error.mensaje, err.error.errors.message, "error");
+      }), catchError(err => {
+        Swal.fire(err.error.mensaje,  err.error.errors.message, 'error');
         return throwError(err);
       })
     );
   }
   cambiarImagen(archivo: File, id: string) {
     this._subirArchivoService
-      .subirArchivo(archivo, "usuarios", id)
+      .subirArchivo(archivo, 'usuarios', id)
       .then((resp: any) => {
         this.usuario.img = resp.usuario.img;
-        Swal.fire("Imagen Actualizada", this.usuario.nombre, "success");
+        Swal.fire('Imagen Actualizada', this.usuario.nombre, 'success');
         this.guardarStorage(id, this.token, this.usuario, this.menu); // aqui no existe
       })
-      .catch((resp) => {
+      .catch(resp => {
         console.log(resp);
       });
   }
   cargarUsuarios(desde: number = 0) {
-    let url = URL_SERVICIOS + "/usuario?desde=" + desde;
+    let url = URL_SERVICIOS + '/usuario?desde=' + desde;
     return this.http.get(url);
   }
   buscarUsuarios(termino: string) {
-    let url = URL_SERVICIOS + "/busqueda/coleccion/usuarios/" + termino;
+    let url = URL_SERVICIOS + '/busqueda/coleccion/usuarios/' + termino;
     return this.http.get(url).pipe(map((res: any) => res.usuarios));
   }
   borrarUsuario(id: string) {
-    let url = URL_SERVICIOS + "/usuario/" + id;
-    url += "?token=" + this.token;
-    return this.http.delete(url).pipe(
-      map((res) => {
-        Swal.fire(
-          "Usuario borrado",
-          "El usuario a sido eliminado correctamente",
-          "success"
-        );
-        return true;
-      })
+  let url = URL_SERVICIOS + '/usuario/' + id;
+  url += '?token=' + this.token; 
+  return this.http.delete(url).pipe(map(res => {
+    Swal.fire(
+      'Usuario borrado', 'El usuario a sido eliminado correctamente', 'success',
     );
+    return true;
+  }));
   }
 }
